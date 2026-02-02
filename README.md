@@ -1,60 +1,115 @@
-#Student-Marks-Prediction-using-Machine-Learning
-- This project predicts student marks based on academic effort indicators using supervised machine learning techniques. The objective is to understand how factors like number of courses and study time influence academic performance.
+# =========================
+# Student Marks Prediction Project
+# Linear Regression vs Decision Tree
+# Real Dataset + Constraints + Visualization
+# =========================
 
-#Project Overview
-- **Problem Type:** Regression (Supervised Learning)
-- **Dataset:** Student Marks Dataset (Kaggle)
-- **Algorithms Used:**
-- Linear Regression
-- Decision Tree Regression
-- **Evaluation Metrics:**
-- Mean Absolute Error (MAE)
-- Mean Squared Error (MSE)
- 
-#Dataset Description
-The dataset contains information about students and their academic performance.
+# 1. Import Libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+import matplotlib.pyplot as plt
 
-#Features Used:
-- `number_courses` – Number of courses enrolled
-- `time_study` – Study time in hours
+# =========================
+# 2. Load Dataset
+# =========================
+data = pd.read_csv("/content/Student_Marks.csv")
 
-#Target Variable:
-- `Marks` – Final marks scored by the student (0–100)
+# =========================
+# 3. Feature Selection
+# =========================
+X = data[["number_courses", "time_study"]]   # Input features
+y = data["Marks"]                            # Target variable
 
-#Technologies Used
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- Matplotlib
+# =========================
+# 4. Train–Test Split
+# =========================
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-#Methodology
-1. Load and preprocess the dataset  
-2. Split data into training and testing sets (80/20)  
-3. Train Linear Regression and Decision Tree models  
-4. Evaluate models using MAE and MSE  
-5. Visualize predictions and compare model performance  
-6. Predict marks for user-provided input values
+# =========================
+# 5. Train Models
+# =========================
+lr_model = LinearRegression()
+lr_model.fit(X_train, y_train)
 
-#Results
-- Linear Regression performs well for linear trends.
-- Decision Tree captures non-linear patterns but may overfit.
-- Model comparison is done using Mean Absolute Error.
+dt_model = DecisionTreeRegressor(random_state=42)
+dt_model.fit(X_train, y_train)
 
-#How to Run
-1. Clone this repository
-2. Place `Student_Marks.csv` in the project directory
-3. Run the Python script
-4. Enter values for:
-   - Number of courses
-   - Study time in hours
-5. View predicted marks
+# =========================
+# 6. Predictions
+# =========================
+lr_predictions = lr_model.predict(X_test)
+dt_predictions = dt_model.predict(X_test)
 
-#Future Enhancements
-- Add more features such as attendance or sleep hours (with proper data)
-- Use Polynomial Regression
-- Deploy as a web app using Streamlit or Flask
+# =========================
+# 7. Apply Realistic Constraints
+# =========================
+lr_predictions = np.clip(lr_predictions, 0, 100)
+dt_predictions = np.clip(dt_predictions, 0, 100)
 
-#Author
-Mehi Manswa Bhagat 
-Machine Learning Mini Project
+# =========================
+# 8. Evaluation Metrics
+# =========================
+print("Linear Regression Results")
+print("MAE:", mean_absolute_error(y_test, lr_predictions))
+print("MSE:", mean_squared_error(y_test, lr_predictions))
+print("-" * 30)
+
+print("Decision Tree Results")
+print("MAE:", mean_absolute_error(y_test, dt_predictions))
+print("MSE:", mean_squared_error(y_test, dt_predictions))
+print("-" * 30)
+
+# =========================
+# 9. Visualization
+# =========================
+# Actual vs Predicted (Linear Regression)
+plt.scatter(y_test, lr_predictions)
+plt.xlabel("Actual Marks")
+plt.ylabel("Predicted Marks")
+plt.title("Actual vs Predicted Marks (Linear Regression)")
+plt.plot(
+    [y_test.min(), y_test.max()],
+    [y_test.min(), y_test.max()],
+    color="red"
+)
+plt.show()
+
+# Error comparison
+models = ["Linear Regression", "Decision Tree"]
+mae_values = [
+    mean_absolute_error(y_test, lr_predictions),
+    mean_absolute_error(y_test, dt_predictions)
+]
+
+plt.bar(models, mae_values)
+plt.ylabel("Mean Absolute Error")
+plt.title("Model Comparison")
+plt.show()
+
+# =========================
+# 10. User Input Prediction
+# =========================
+num_courses = float(input("Enter number of courses (1–10): "))
+time_study = float(input("Enter study time in hours (0–12): "))
+
+# Apply input constraints
+num_courses = np.clip(num_courses, 1, 10)
+time_study = np.clip(time_study, 0, 12)
+
+# Prepare input
+new_data = pd.DataFrame(
+    [[num_courses, time_study]],
+    columns=["number_courses", "time_study"]
+)
+
+# Predict
+predicted_marks = lr_model.predict(new_data)
+predicted_marks = np.clip(predicted_marks, 0, 100)
+
+print("Predicted Marks (0–100):", round(predicted_marks[0], 2))
